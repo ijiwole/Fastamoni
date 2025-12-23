@@ -1,0 +1,111 @@
+config:
+  target: "http://localhost:3000/api"
+  phases:
+    - duration: 1
+      arrivalCount: 1
+  defaults:
+    headers:
+      Content-Type: application/json
+  processor: "./processor.js"
+  plugins:
+    expect: {}
+
+scenarios:
+  - name: "Smoke - run each endpoint once"
+    flow:
+      - function: "setTestUserVars"
+      - function: "generateUUID"
+
+      # Login (works with 200 or 201)
+      - post:
+          url: "/auth/login"
+          json:
+            email: "{{ verifiedTestEmail }}"
+            password: "{{ verifiedTestPassword }}"
+          capture:
+            - json: "$.accessToken"
+              as: "token"
+            - json: "$.user.id"
+              as: "userId"
+          expect:
+            - statusCode: [200, 201]
+
+      # Get current user
+      - get:
+          url: "/users/me"
+          headers:
+            Authorization: "Bearer {{ token }}"
+          expect:
+            - statusCode: 200
+
+      # Set PIN (idempotent)
+      - post:
+          url: "/users/pin"
+          headers:
+            Authorization: "Bearer {{ token }}"
+          json:
+            pin: "{{ verifiedTestPin }}"
+          expect:
+            - statusCode: [200, 201]
+
+      # Fund wallet (credit)
+      - post:
+          url: "/transactions/fund-wallet"
+          headers:
+            Authorization: "Bearer {{ token }}"
+          json:
+            amount: 10
+          expect:
+            - statusCode: [200, 201]
+
+      # Create donation
+      - post:
+          url: "/donations"
+          headers:
+            Authorization: "Bearer {{ token }}"
+          json:
+            beneficiaryId: "{{ beneficiaryId }}"
+            amount: 5
+            pin: "{{ verifiedTestPin }}"
+            message: "Smoke test donation"
+            idempotencyKey: "smoke-{{ uuid }}"
+          capture:
+            - json: "$.id"
+              as: "donationId"
+          expect:
+            - statusCode: [200, 201, 404]  # 404 if beneficiary missing
+
+      # Donation count
+      - get:
+          url: "/donations/count"
+          headers:
+            Authorization: "Bearer {{ token }}"
+          expect:
+            - statusCode: 200
+
+      - function: "setDonationLookupId"
+
+      # List donations
+      - get:
+          url: "/donations?page=1&limit=5"
+          headers:
+            Authorization: "Bearer {{ token }}"
+          expect:
+            - statusCode: 200
+
+      # Get single donation
+      - get:
+          url: "/donations/{{ donationLookupId }}"
+          headers:
+            Authorization: "Bearer {{ token }}"
+          expect:
+            - statusCode: [200, 404]
+
+      # Get donation transaction
+      - get:
+          url: "/donations/{{ donationLookupId }}/transaction"
+          headers:
+            Authorization: "Bearer {{ token }}"
+          expect:
+            - statusCode: [200, 404]
+

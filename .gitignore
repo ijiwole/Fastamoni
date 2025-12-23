@@ -1,0 +1,73 @@
+###############################################################################
+# Node / NestJS / TypeScript
+###############################################################################
+
+# dependencies
+node_modules/
+
+# build outputs
+dist/
+build/
+out/
+
+# caches
+.cache/
+.eslintcache
+.tsbuildinfo
+
+# logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# test / coverage
+coverage/
+.nyc_output/
+
+# env files (keep secrets out of git)
+.env
+.env.*
+!.env.example
+
+# local db / runtime data
+*.sqlite
+*.sqlite3
+data/
+
+###############################################################################
+# Artillery / load test outputs
+###############################################################################
+*.json
+*.ndjson
+*.csv
+*.jtl
+report.html
+
+# If you want to commit JSON fixtures, put them under a folder and add an allow rule
+# e.g. !test/fixtures/**/*.json
+
+###############################################################################
+# Editor / OS files
+###############################################################################
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+
+# IDEs
+.idea/
+.vscode/
+*.iml
+
+# Cursor
+.cursor/
+
+# Misc
+*.swp
+*.swo
+*.swn
+*~
+

@@ -1,0 +1,82 @@
+config:
+  target: "http://localhost:3000/api"
+  phases:
+    - duration: 30
+      arrivalRate: 100
+  defaults:
+    headers:
+      Content-Type: application/json
+  processor: "./processor.js"
+  plugins:
+    ensure:
+      thresholds:
+        - "http.response_time.p99": 50
+
+scenarios:
+  # Steady-state authenticated reads (use a pre-generated JWT token from env)
+  - name: "Users - me"
+    weight: 20
+    flow:
+      - function: "setLoadTestVars"
+      - get:
+          url: "/users/me"
+          headers:
+            Authorization: "Bearer {{ token }}"
+          expect:
+            - statusCode: 200
+
+  - name: "Wallet - get"
+    weight: 20
+    flow:
+      - function: "setLoadTestVars"
+      - get:
+          url: "/wallets/me"
+          headers:
+            Authorization: "Bearer {{ token }}"
+          expect:
+            - statusCode: 200
+
+  - name: "Donations - count"
+    weight: 20
+    flow:
+      - function: "setLoadTestVars"
+      - get:
+          url: "/donations/count"
+          headers:
+            Authorization: "Bearer {{ token }}"
+          expect:
+            - statusCode: 200
+
+  - name: "Donations - list"
+    weight: 20
+    flow:
+      - function: "setLoadTestVars"
+      - get:
+          url: "/donations?page=1&limit=10"
+          headers:
+            Authorization: "Bearer {{ token }}"
+          expect:
+            - statusCode: 200
+
+  - name: "Donations - get one"
+    weight: 10
+    flow:
+      - function: "setLoadTestVars"
+      - get:
+          url: "/donations/{{ testDonationId }}"
+          headers:
+            Authorization: "Bearer {{ token }}"
+          expect:
+            - statusCode: [200, 404]
+
+  - name: "Donations - get transaction"
+    weight: 10
+    flow:
+      - function: "setLoadTestVars"
+      - get:
+          url: "/donations/{{ testDonationId }}/transaction"
+          headers:
+            Authorization: "Bearer {{ token }}"
+          expect:
+            - statusCode: [200, 404]
+
