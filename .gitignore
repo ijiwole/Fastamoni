@@ -40,14 +40,15 @@ data/
 ###############################################################################
 # Artillery / load test outputs
 ###############################################################################
-*.json
 *.ndjson
 *.csv
 *.jtl
 report.html
 
-# If you want to commit JSON fixtures, put them under a folder and add an allow rule
-# e.g. !test/fixtures/**/*.json
+# Ignore only Artillery outputs we generate locally (keep config JSON like package.json tracked)
+/tmp/
+/artillery-report*.json
+/load*.json
 
 ###############################################################################
 # Editor / OS files
